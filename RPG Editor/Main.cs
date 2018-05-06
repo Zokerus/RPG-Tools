@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.Xml;
@@ -8,6 +9,7 @@ namespace RPG_Editor
     public partial class Main : Form
     {
         private Game game;
+        SortedDictionary<string, Character.Stat> stats;
 
         static string gamePath;
         static string statPath;
@@ -27,7 +29,7 @@ namespace RPG_Editor
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            stats = new SortedDictionary<string, Character.Stat>();
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
@@ -49,7 +51,7 @@ namespace RPG_Editor
 
         private void CreateDirectoryStructure()
         {
-            ResetMenuSettings();
+            ResetMenuSettings(false);
 
             FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
             folderBrowser.Description = "Select directory of the new game";
@@ -101,11 +103,6 @@ namespace RPG_Editor
                 Directory.CreateDirectory(questPath);
 
                 statsToolStripMenuItem.Enabled = true;
-                //nPCsToolStripMenuItem.Enabled = true;
-                //itemsToolStripMenuItem.Enabled = true;
-                //skillsToolStripMenuItem.Enabled = true;
-                //jobsToolStripMenuItem.Enabled = true;
-                //questsToolStripMenuItem.Enabled = true;
 
                 if(File.Exists(gamePath + @"\Game.xml"))
                 {
@@ -121,7 +118,8 @@ namespace RPG_Editor
                 writer.WriteEndElement();
                 writer.WriteEndDocument();
                 writer.Close();
-                
+
+                LoadData();
             }
         }
 
@@ -129,7 +127,7 @@ namespace RPG_Editor
         {
             if(frmStats == null || frmStats.IsDisposed)
             {
-                frmStats = new Stats();
+                frmStats = new Stats(ref stats, statPath);
                 frmStats.MdiParent = this;
             }
 
@@ -139,7 +137,7 @@ namespace RPG_Editor
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ResetMenuSettings();
+            ResetMenuSettings(false);
 
             FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
             folderBrowser.Description = "Select your game directory";
@@ -189,16 +187,33 @@ namespace RPG_Editor
             gamePath = Path.Combine(gamePath, "Game");
 
             statsToolStripMenuItem.Enabled = true;
+            LoadData();
         }
 
-        private void ResetMenuSettings()
+        private void ResetMenuSettings(bool state)
         {
-            statsToolStripMenuItem.Enabled = false;
-            nPCsToolStripMenuItem.Enabled = false;
-            itemsToolStripMenuItem.Enabled = false;
-            skillsToolStripMenuItem.Enabled = false;
-            jobsToolStripMenuItem.Enabled = false;
-            questsToolStripMenuItem.Enabled = false;
+            statsToolStripMenuItem.Enabled = state;
+            nPCsToolStripMenuItem.Enabled = state;
+            itemsToolStripMenuItem.Enabled = state;
+            skillsToolStripMenuItem.Enabled = state;
+            jobsToolStripMenuItem.Enabled = state;
+            questsToolStripMenuItem.Enabled = state;
+        }
+
+        private void LoadData()
+        {
+            if (frmStats == null || frmStats.IsDisposed)
+            {
+                frmStats = new Stats(ref stats, statPath);
+                frmStats.MdiParent = this;
+            }
+
+            frmStats.LoadStats();
+
+            if(stats.Count > 0)
+            {
+                ResetMenuSettings(true);
+            }
         }
     }
 }
