@@ -14,6 +14,11 @@ namespace RPG_Extras
 {
     public partial class Main : Form
     {
+        private const string vertCount = "Vertex Count:";
+        private const string faceCount = "Face Count:";
+        private const string strVertices = "Vertices:";
+        private const string strFaces = "Faces:";
+
         public struct VertexType
         {
             public float x;
@@ -30,11 +35,11 @@ namespace RPG_Extras
 
         public struct FaceType
         {
-            public int Vertex1;
-            public int Vertex2;
-            public int Vertex3;
+            public uint Vertex1;
+            public uint Vertex2;
+            public uint Vertex3;
             public int Normal;
-            public FaceType(int Vertex1, int Vertex2, int Vertex3, int Normal)
+            public FaceType(uint Vertex1, uint Vertex2, uint Vertex3, int Normal)
             {
                 this.Vertex1 = Vertex1;
                 this.Vertex2 = Vertex2;
@@ -53,7 +58,7 @@ namespace RPG_Extras
             string line;
             string[] split;
             int[] faceID = new int[3];
-            int[] index = new int[3];
+            uint[] index = new uint[3];
             List<VertexType> vertices = new List<VertexType>();
             List<VertexType> normals = new List<VertexType>();
             List<FaceType> faces = new List<FaceType>();
@@ -97,7 +102,7 @@ namespace RPG_Extras
                     }
                     else if (split[0] == "v")
                     {
-                        vertices.Add(new VertexType(Convert.ToSingle(split[1]), Convert.ToSingle(split[2]), Convert.ToSingle(split[3])));
+                        vertices.Add(new VertexType(Convert.ToSingle(split[1], System.Globalization.CultureInfo.InvariantCulture.NumberFormat), Convert.ToSingle(split[2], System.Globalization.CultureInfo.InvariantCulture.NumberFormat), Convert.ToSingle(split[3], System.Globalization.CultureInfo.InvariantCulture.NumberFormat)));
                     }
                     else if (split[0] == "vn")
                     {
@@ -109,12 +114,12 @@ namespace RPG_Extras
                         for (int i = 0; i < 3; i++)
                         {
                             faceID[i] = Convert.ToInt32(split[i + 1].Replace("//", "/").Split('/')[1]);
-                            index[i] = Convert.ToInt32(split[i + 1].Replace("//", "/").Split('/')[0]);
+                            index[i] = Convert.ToUInt32(split[i + 1].Replace("//", "/").Split('/')[0]);
                         }
 
                         if (faceID[0] != faceID[1] || faceID[0] != faceID[2])
                         {
-                            MessageBox.Show("Die Normalen passen nicht zusaamen.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show("Die Normalen passen nicht zusammen.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return;
                         }
                         faces.Add(new FaceType(index[0], index[1], index[2], faceID[0]));
@@ -129,19 +134,19 @@ namespace RPG_Extras
                     fs = new FileStream(sdialog.FileName, FileMode.Create);
                     BinaryWriter br = new BinaryWriter(fs);
 
-                    br.Write("Vertex Count:");
+                    StringToBinary(br, vertCount);
                     br.Write(vertices.Count());
-                    br.Write("Face Count:");
+                    StringToBinary(br, faceCount);
                     br.Write(faces.Count());
-                    br.Write("Vertices:");
+                    StringToBinary(br, strVertices);
 
-                    for(int i = 0; i < vertices.Count;i++)
+                    for (int i = 0; i < vertices.Count;i++)
                     {
                         br.Write(vertices[i].x);
                         br.Write(vertices[i].y);
                         br.Write(vertices[i].z);
                     }
-                    br.Write("Faces:");
+                    StringToBinary(br, strFaces);
                     for (int i = 0; i < faces.Count; i++)
                     {
                         br.Write(faces[i].Vertex1);
@@ -154,6 +159,12 @@ namespace RPG_Extras
                 }
             }
 
+        }
+
+        private void StringToBinary(BinaryWriter binaryWriter, string text)
+        {
+            binaryWriter.Write((ushort)text.Length);
+            binaryWriter.Write(text.ToCharArray());
         }
     }
 }

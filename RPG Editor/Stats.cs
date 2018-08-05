@@ -200,6 +200,22 @@ namespace RPG_Editor
             {
                 File.Delete(path + @"\Stats.xml");
             }
+
+            using (BinaryWriter bwriter = new BinaryWriter(File.Open(path + @"\Stats.dat", FileMode.Create)))
+            {
+                bwriter.Write((ushort)stats.Count);
+                foreach (KeyValuePair<string, Character.Stat> item in stats)
+                {
+                    bwriter.Write((ushort)item.Value.Name.Length);
+                    bwriter.Write(item.Value.Name.ToCharArray());
+                    bwriter.Write((ushort)item.Value.Abbreviation.Length);
+                    bwriter.Write(item.Value.Abbreviation.ToCharArray());
+                    bwriter.Write((ushort)item.Value.Description.Length);
+                    bwriter.Write(item.Value.Description.ToCharArray());
+                    bwriter.Write((ushort)item.Value.Type);
+                }
+            }
+
             XmlWriter writer = XmlWriter.Create(path + @"\Stats.xml");
             writer.WriteStartDocument();
             writer.WriteStartElement("Stats");
